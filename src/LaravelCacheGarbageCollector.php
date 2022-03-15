@@ -2,13 +2,11 @@
 
 namespace jdavidbakr\LaravelCacheGarbageCollector;
 
-use Exception;
-use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Foundation\Inspiring;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 class LaravelCacheGarbageCollector extends Command
 {
@@ -35,27 +33,18 @@ class LaravelCacheGarbageCollector extends Command
     {
         // Make a storage disk for the cache location
         $cacheDisk = [
-            'driver'=>'local',
-            'root'=>config('cache.stores.file.path')
+            'driver' => 'local',
+            'root'   => config('cache.stores.file.path')
         ];
         Config::set('filesystems.disks.fcache', $cacheDisk);
         $expired_file_count = 0;
-        $active_file_count = 0;
-
-        // Grab the cache files
-        $files = Storage::disk('fcache')->allFiles();
-
+        $active_file_count  = 0;
         // Loop the files and get rid of any that have expired
-        foreach ($files as $key=>$cachefile) {
-            // Ignore this file
-            if ($cachefile == '.gitignore') {
-                continue;
-            }
+        foreach ($this->cachedfiles() as $cachefile) {
 
             try {
                 // Grab the contents of the file
                 $contents = Storage::disk('fcache')->get($cachefile);
-
                 // Get the expiration time
                 $expire = substr($contents, 0, 10);
 
@@ -68,9 +57,35 @@ class LaravelCacheGarbageCollector extends Command
                     $active_file_count++;
                 }
             } catch (FileNotFoundException $e) {
+                $this->error($e->getMessage(), $this->getOutput());
                 // Getting an occasional error of this type on the 'get' command above,
                 // so adding a try-catch to skip the file if we do.
             }
         }
+        $this->warn("cleared $expired_file_count file(s)", $this->getOutput());
+        $this->info("$active_file_count file(s) still active", $this->getOutput());
+    }
+
+    protected function cachedfiles()
+    {
+        $directories = $this->cachedFolders();
+        foreach ($directories as $directory) {
+            foreach (Storage::disk('fcache')->files($directory) as $file) {
+                yield $file;
+            }
+        }
+    }
+
+    protected function cachedFolders($dir = null)
+    {
+        $resuts      = [[$dir]];
+        $directories = Storage::disk('fcache')->directories($dir);
+        if ($directories) {
+            $resuts = [];
+            foreach ($directories as $directory) {
+                $resuts[] = $this->cachedFolders($directory);
+            }
+        }
+        return array_merge(...$resuts);
     }
 }
