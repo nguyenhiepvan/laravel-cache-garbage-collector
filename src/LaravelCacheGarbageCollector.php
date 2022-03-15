@@ -47,6 +47,9 @@ class LaravelCacheGarbageCollector extends Command
                 if ($expire && Carbon::now()->timestamp >= (int)$expire) {
                     Storage::disk('fcache')->delete($cachefile);
                     $expired_file_count++;
+                    if ($expired_file_count % 100 === 0) {
+                        $this->info("cleared $expired_file_count files");
+                    }
                 } else {
                     $active_file_count++;
                 }
@@ -54,7 +57,7 @@ class LaravelCacheGarbageCollector extends Command
                 $this->error($e->getMessage());
             }
         }
-        $this->warn("cleared $expired_file_count file(s)");
+        $this->info("cleared $expired_file_count file(s)");
         $this->info("$active_file_count file(s) still active");
     }
 
