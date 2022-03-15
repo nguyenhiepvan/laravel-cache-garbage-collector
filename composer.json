@@ -1,5 +1,5 @@
 {
-    "name": "jdavidbakr/laravel-cache-garbage-collector",
+    "name": "nguyenhiep/laravel-cache-garbage-collector",
     "type": "library",
     "description": "A script that will clean up expired cache files if the system is using the files cache system",
     "keywords": [
