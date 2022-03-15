@@ -31,7 +31,6 @@ class LaravelCacheGarbageCollector extends Command
      */
     public function handle()
     {
-        // Make a storage disk for the cache location
         $cacheDisk = [
             'driver' => 'local',
             'root'   => config('cache.stores.file.path')
@@ -39,18 +38,13 @@ class LaravelCacheGarbageCollector extends Command
         Config::set('filesystems.disks.fcache', $cacheDisk);
         $expired_file_count = 0;
         $active_file_count  = 0;
-        // Loop the files and get rid of any that have expired
         foreach ($this->cachedfiles() as $cachefile) {
-
             try {
-                // Grab the contents of the file
-                $handle = fopen(Storage::disk('fcache')->path($cachefile),'r');
+                $handle = fopen(Storage::disk('fcache')->path($cachefile), 'r');
                 $expire = fread($handle, 10);
                 fclose($handle);
 
-                // See if we have expired
-                if (Carbon::now()->timestamp >= $expire) {
-                    // Delete the file
+                if ($expire && Carbon::now()->timestamp >= (int)$expire) {
                     Storage::disk('fcache')->delete($cachefile);
                     $expired_file_count++;
                 } else {
@@ -58,8 +52,6 @@ class LaravelCacheGarbageCollector extends Command
                 }
             } catch (FileNotFoundException $e) {
                 $this->error($e->getMessage());
-                // Getting an occasional error of this type on the 'get' command above,
-                // so adding a try-catch to skip the file if we do.
             }
         }
         $this->warn("cleared $expired_file_count file(s)");
