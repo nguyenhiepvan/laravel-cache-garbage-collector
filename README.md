@@ -19,7 +19,7 @@ Thanks to [TerrePorter](http://laravel.io/user/TerrePorter) for his suggestion o
 Via Composer
 
 ```bash
-$ composer require jdavidbakr/laravel-cache-garbage-collector
+$ composer nguyenhiep/laravel-cache-garbage-collector
 ```
 
 Then add the service provider to `app/Console/Kernel.php` in the \$commands array:
