@@ -57,13 +57,13 @@ class LaravelCacheGarbageCollector extends Command
                     $active_file_count++;
                 }
             } catch (FileNotFoundException $e) {
-                $this->error($e->getMessage(), $this->getOutput());
+                $this->error($e->getMessage());
                 // Getting an occasional error of this type on the 'get' command above,
                 // so adding a try-catch to skip the file if we do.
             }
         }
-        $this->warn("cleared $expired_file_count file(s)", $this->getOutput());
-        $this->info("$active_file_count file(s) still active", $this->getOutput());
+        $this->warn("cleared $expired_file_count file(s)");
+        $this->info("$active_file_count file(s) still active");
     }
 
     protected function cachedfiles()
