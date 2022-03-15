@@ -44,9 +44,9 @@ class LaravelCacheGarbageCollector extends Command
 
             try {
                 // Grab the contents of the file
-                $contents = Storage::disk('fcache')->get($cachefile);
-                // Get the expiration time
-                $expire = substr($contents, 0, 10);
+                $handle = fopen(Storage::disk('fcache')->path($cachefile),'r');
+                $expire = fread($handle, 10);
+                fclose($handle);
 
                 // See if we have expired
                 if (Carbon::now()->timestamp >= $expire) {
